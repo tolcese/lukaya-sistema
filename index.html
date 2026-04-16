@@ -4,585 +4,571 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>LUKAYA! - Control de Operaciones</title>
-  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <style>
-    * { box-sizing: border-box; }
-    body { margin: 0; font-family: Arial, sans-serif; }
-    .table-container { overflow-x: auto; }
-    table { border-collapse: collapse; min-width: 100%; font-size: 13px; }
-    th { background: #1e3a5f; color: white; padding: 8px 10px; text-align: left; white-space: nowrap; position: sticky; top: 0; z-index: 10; }
-    td { padding: 7px 10px; border-bottom: 1px solid #e5e7eb; white-space: nowrap; vertical-align: middle; }
-    tr:hover td { background: #f0f7ff; }
-    tr.liquidado td { background: #f0fdf4; }
-    tr.baja td { background: #fef2f2; color: #9ca3af; }
-    .badge { padding: 2px 8px; border-radius: 9999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-    .badge-liquidado { background: #dcfce7; color: #166534; }
-    .badge-solicitado { background: #dbeafe; color: #1e40af; }
-    .badge-cargada { background: #ffedd5; color: #9a3412; }
-    .badge-proceso { background: #fef9c3; color: #854d0e; }
-    .badge-baja { background: #fee2e2; color: #991b1b; }
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 100; display: flex; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; }
-    .modal-box { background: white; border-radius: 12px; width: 100%; max-width: 820px; padding: 0; box-shadow: 0 20px 60px rgba(0,0,0,0.3); margin: auto; }
-    .modal-header { background: #1e3a5f; color: white; padding: 16px 24px; border-radius: 12px 12px 0 0; display: flex; justify-content: space-between; align-items: center; }
-    .modal-body { padding: 24px; max-height: 80vh; overflow-y: auto; }
-    .section-title { font-size: 12px; font-weight: 700; text-transform: uppercase; color: #1e3a5f; border-bottom: 2px solid #1e3a5f; padding-bottom: 4px; margin: 20px 0 12px; letter-spacing: 0.05em; }
-    .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; }
-    .form-group label { display: block; font-size: 11px; font-weight: 600; color: #374151; margin-bottom: 4px; }
-    .form-group input, .form-group select, .form-group textarea { width: 100%; border: 1px solid #d1d5db; border-radius: 6px; padding: 7px 10px; font-size: 13px; outline: none; transition: border-color 0.2s; }
-    .form-group input:focus, .form-group select:focus, .form-group textarea:focus { border-color: #1e3a5f; box-shadow: 0 0 0 2px rgba(30,58,95,0.1); }
-    .form-group input[readonly] { background: #f3f4f6; color: #1e3a5f; font-weight: 600; }
-    .check-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 8px; }
-    .check-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; background: #f9fafb; border-radius: 6px; border: 1px solid #e5e7eb; cursor: pointer; }
-    .check-item input[type=checkbox] { width: 16px; height: 16px; accent-color: #1e3a5f; cursor: pointer; }
-    .check-item label { font-size: 12px; font-weight: 500; color: #374151; cursor: pointer; }
-    .check-item.checked { background: #eff6ff; border-color: #93c5fd; }
-    .btn { padding: 8px 18px; border-radius: 7px; font-size: 13px; font-weight: 600; cursor: pointer; border: none; transition: all 0.15s; }
-    .btn-primary { background: #1e3a5f; color: white; }
-    .btn-primary:hover { background: #162d4a; }
-    .btn-success { background: #16a34a; color: white; }
-    .btn-success:hover { background: #15803d; }
-    .btn-danger { background: #dc2626; color: white; }
-    .btn-danger:hover { background: #b91c1c; }
-    .btn-secondary { background: #e5e7eb; color: #374151; }
-    .btn-secondary:hover { background: #d1d5db; }
-    .btn-sm { padding: 4px 10px; font-size: 11px; }
-    .topbar { background: #1e3a5f; color: white; padding: 14px 24px; display: flex; align-items: center; justify-content: space-between; }
-    .logo { font-size: 22px; font-weight: 800; letter-spacing: 1px; }
-    .logo span { color: #fbbf24; }
-    .toolbar { padding: 16px 24px; background: white; border-bottom: 1px solid #e5e7eb; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-    .toolbar input, .toolbar select { padding: 7px 12px; border: 1px solid #d1d5db; border-radius: 7px; font-size: 13px; outline: none; }
-    .totals-bar { background: #1e3a5f; color: white; padding: 10px 24px; display: flex; gap: 24px; flex-wrap: wrap; font-size: 13px; }
-    .totals-bar span { opacity: 0.7; }
-    .totals-bar strong { color: #fbbf24; }
-    .cb { display: inline-block; width: 14px; height: 14px; border-radius: 3px; border: 1px solid #d1d5db; vertical-align: middle; }
-    .cb.yes { background: #16a34a; border-color: #16a34a; color: white; text-align: center; line-height: 14px; font-size: 10px; }
-    .delete-confirm { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: center; justify-content: center; }
-    .delete-box { background: white; border-radius: 12px; padding: 28px; max-width: 380px; text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
-    .empty { text-align: center; padding: 60px; color: #9ca3af; }
-    .loading { text-align: center; padding: 40px; color: #6b7280; }
-    .login-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: linear-gradient(135deg, #1e3a5f 0%, #0f1f35 100%); }
-    .login-box { background: white; border-radius: 16px; padding: 40px; width: 100%; max-width: 380px; box-shadow: 0 20px 60px rgba(0,0,0,0.4); }
-    .login-logo { font-size: 36px; font-weight: 900; text-align: center; color: #1e3a5f; letter-spacing: 2px; margin-bottom: 4px; }
-    .login-logo span { color: #fbbf24; }
-    .login-sub { text-align: center; color: #6b7280; font-size: 13px; margin-bottom: 28px; }
-    .login-field { margin-bottom: 16px; }
-    .login-field label { display: block; font-size: 12px; font-weight: 600; color: #374151; margin-bottom: 6px; }
-    .login-field input { width: 100%; border: 1px solid #d1d5db; border-radius: 8px; padding: 10px 14px; font-size: 14px; outline: none; }
-    .login-field input:focus { border-color: #1e3a5f; box-shadow: 0 0 0 3px rgba(30,58,95,0.1); }
-    .login-error { background: #fef2f2; border: 1px solid #fecaca; color: #dc2626; border-radius: 6px; padding: 8px 12px; font-size: 13px; margin-bottom: 14px; text-align: center; }
-    .login-btn { width: 100%; background: #1e3a5f; color: white; border: none; border-radius: 8px; padding: 11px; font-size: 15px; font-weight: 700; cursor: pointer; margin-top: 4px; }
-    .login-btn:hover { background: #162d4a; }
+    *{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;background:#f3f4f6}
+    .table-container{overflow-x:auto}
+    table{border-collapse:collapse;min-width:100%;font-size:13px}
+    th{background:#1e3a5f;color:white;padding:8px 10px;text-align:left;white-space:nowrap;position:sticky;top:0;z-index:10}
+    td{padding:7px 10px;border-bottom:1px solid #e5e7eb;white-space:nowrap;vertical-align:middle}
+    tr:hover td{background:#f0f7ff}
+    tr.liq td{background:#f0fdf4}
+    tr.baja td{background:#fef2f2;color:#9ca3af}
+    .badge{padding:2px 8px;border-radius:9999px;font-size:11px;font-weight:600;white-space:nowrap}
+    .b-liq{background:#dcfce7;color:#166534}.b-sol{background:#dbeafe;color:#1e40af}
+    .b-carg{background:#ffedd5;color:#9a3412}.b-proc{background:#fef9c3;color:#854d0e}
+    .b-baja{background:#fee2e2;color:#991b1b}
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;display:flex;align-items:flex-start;justify-content:center;padding:20px;overflow-y:auto}
+    .mbox{background:white;border-radius:12px;width:100%;max-width:820px;box-shadow:0 20px 60px rgba(0,0,0,.3);margin:auto}
+    .mhead{background:#1e3a5f;color:white;padding:16px 24px;border-radius:12px 12px 0 0;display:flex;justify-content:space-between;align-items:center}
+    .mbody{padding:24px;max-height:80vh;overflow-y:auto}
+    .stitle{font-size:12px;font-weight:700;text-transform:uppercase;color:#1e3a5f;border-bottom:2px solid #1e3a5f;padding-bottom:4px;margin:20px 0 12px;letter-spacing:.05em}
+    .fgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px}
+    .fg label{display:block;font-size:11px;font-weight:600;color:#374151;margin-bottom:4px}
+    .fg input,.fg select,.fg textarea{width:100%;border:1px solid #d1d5db;border-radius:6px;padding:7px 10px;font-size:13px;outline:none}
+    .fg input:focus,.fg select:focus,.fg textarea:focus{border-color:#1e3a5f;box-shadow:0 0 0 2px rgba(30,58,95,.1)}
+    .fg input[readonly]{background:#f3f4f6;color:#1e3a5f;font-weight:600}
+    .cgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:8px}
+    .ci{display:flex;align-items:center;gap:8px;padding:8px 10px;background:#f9fafb;border-radius:6px;border:1px solid #e5e7eb;cursor:pointer}
+    .ci input[type=checkbox]{width:16px;height:16px;accent-color:#1e3a5f}
+    .ci label{font-size:12px;font-weight:500;color:#374151;cursor:pointer}
+    .ci.on{background:#eff6ff;border-color:#93c5fd}
+    .btn{padding:8px 18px;border-radius:7px;font-size:13px;font-weight:600;cursor:pointer;border:none}
+    .bp{background:#1e3a5f;color:white}.bp:hover{background:#162d4a}
+    .bs{background:#16a34a;color:white}.bs:hover{background:#15803d}
+    .bd{background:#dc2626;color:white}.bd:hover{background:#b91c1c}
+    .bn{background:#e5e7eb;color:#374151}.bn:hover{background:#d1d5db}
+    .bsm{padding:4px 10px;font-size:11px}
+    .topbar{background:#1e3a5f;color:white;padding:14px 24px;display:flex;align-items:center;justify-content:space-between}
+    .logo{font-size:22px;font-weight:800;letter-spacing:1px}
+    .logo span{color:#fbbf24}
+    .toolbar{padding:16px 24px;background:white;border-bottom:1px solid #e5e7eb;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+    .toolbar input,.toolbar select{padding:7px 12px;border:1px solid #d1d5db;border-radius:7px;font-size:13px;outline:none}
+    .tbar{background:#1e3a5f;color:white;padding:10px 24px;display:flex;gap:24px;flex-wrap:wrap;font-size:13px}
+    .tbar span{opacity:.7}.tbar strong{color:#fbbf24}
+    .cb{display:inline-block;width:14px;height:14px;border-radius:3px;border:1px solid #d1d5db;vertical-align:middle}
+    .cb.y{background:#16a34a;border-color:#16a34a;color:white;text-align:center;line-height:14px;font-size:10px}
+    .dconf{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:flex;align-items:center;justify-content:center}
+    .dbox{background:white;border-radius:12px;padding:28px;max-width:380px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+    .empty{text-align:center;padding:60px;color:#9ca3af}
+    .login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#1e3a5f,#0f1f35)}
+    .login-box{background:white;border-radius:16px;padding:40px;width:100%;max-width:380px;box-shadow:0 20px 60px rgba(0,0,0,.4)}
+    .login-logo{font-size:36px;font-weight:900;text-align:center;color:#1e3a5f;letter-spacing:2px;margin-bottom:4px}
+    .login-logo span{color:#fbbf24}
+    .login-sub{text-align:center;color:#6b7280;font-size:13px;margin-bottom:28px}
+    .lf{margin-bottom:16px}
+    .lf label{display:block;font-size:12px;font-weight:600;color:#374151;margin-bottom:6px}
+    .lf input{width:100%;border:1px solid #d1d5db;border-radius:8px;padding:10px 14px;font-size:14px;outline:none}
+    .lf input:focus{border-color:#1e3a5f;box-shadow:0 0 0 3px rgba(30,58,95,.1)}
+    .lerr{background:#fef2f2;border:1px solid #fecaca;color:#dc2626;border-radius:6px;padding:8px 12px;font-size:13px;margin-bottom:14px;text-align:center}
+    .lbtn{width:100%;background:#1e3a5f;color:white;border:none;border-radius:8px;padding:11px;font-size:15px;font-weight:700;cursor:pointer}
+    .lbtn:hover{background:#162d4a}
   </style>
 </head>
 <body>
-  <div id="root"></div>
-  <script type="text/babel">
-    const SUPABASE_URL = 'https://zohniclbfhvqmurtrhka.supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_wLoQBCmp1MM6f77rFJCbww_H_eJVEUZ';
-    const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+<div id="root"></div>
+<script type="text/babel">
+const SB_URL = 'https://zohniclbfhvqmurtrhka.supabase.co';
+const SB_KEY = 'sb_publishable_wLoQBCmp1MM6f77rFJCbww_H_eJVEUZ';
+const sb = window.supabase.createClient(SB_URL, SB_KEY);
 
-    // ── CREDENCIALES (modificar acá si querés cambiarlas) ──
-    const ADMIN_USER = 'admin';
-    const ADMIN_PASS = 'lukaya2026';
+const ADMIN_USER = 'admin';
+const ADMIN_PASS = 'lukaya2026';
 
-    const ESTADOS = ['SOLICITADO','CARGADA DOCUMENTACION','EN PROCESO LIQ.','LIQUIDADO','BAJA'];
-    const BANCOS  = ['COLUMBIA','SANTANDER','GALICIA','NACIÓN','PROVINCIA','SUPERVIELLE','OTRO'];
-    const PROVINCIAS = ['Buenos Aires','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego'];
+const ESTADOS = ['SOLICITADO','CARGADA DOCUMENTACION','EN PROCESO LIQ.','LIQUIDADO','BAJA'];
+const BANCOS  = ['COLUMBIA','SANTANDER','GALICIA','NACIÓN','PROVINCIA','SUPERVIELLE','OTRO'];
+const PROVS   = ['Buenos Aires','Catamarca','Chaco','Chubut','Córdoba','Corrientes','Entre Ríos','Formosa','La Pampa','La Rioja','Mendoza','Misiones','Neuquén','Río Negro','San Juan','San Luis','Santa Cruz','Santa Fe','Santiago del Estero','Tierra del Fuego'];
+const DATE_FIELDS = ['fecha_solicitud','fecha_venc_primera_cuota','fecha_liquidacion','fecha_pagado','fecha_pago_com_gest'];
 
-    const EMPTY = {
-      fecha_solicitud:'', estado:'SOLICITADO', banco:'', concesionaria:'', provincia:'', localidad:'',
-      dni_cliente:'', nombre_cliente:'', telefono:'', mail:'',
-      dominio_vehiculo:'', vehiculo:'',
-      fecha_venc_primera_cuota:'', tipo_cuota:'FIJA', cant_cuotas:'', importe_solicitado:'', gasto_gestoria:'',
-      tasa:'3,2', pago_extras:'', comision_operativo:'', comision_gestora_interior:'', retribucion_banco:'',
-      documento_01_08:false, titulo_unidad:false, verif_policial:false, informe_dominio:false, constancia_entrega:false,
-      fecha_liquidacion:'', pagado:false, fecha_pagado:'', pago_com_gest:false, fecha_pago_com_gest:'', observaciones:''
-    };
+const EMPTY = {
+  fecha_solicitud:'',estado:'SOLICITADO',banco:'',concesionaria:'',provincia:'',localidad:'',
+  dni_cliente:'',nombre_cliente:'',telefono:'',mail:'',
+  dominio_vehiculo:'',vehiculo:'',
+  fecha_venc_primera_cuota:'',tipo_cuota:'FIJA',cant_cuotas:'',importe_solicitado:'',gasto_gestoria:'',
+  tasa:'3,2',pago_extras:'',comision_operativo:'',comision_gestora_interior:'',retribucion_banco:'',
+  documento_01_08:false,titulo_unidad:false,verif_policial:false,informe_dominio:false,constancia_entrega:false,
+  fecha_liquidacion:'',pagado:false,fecha_pagado:'',pago_com_gest:false,fecha_pago_com_gest:'',observaciones:''
+};
 
-    const DATE_FIELDS = ['fecha_solicitud','fecha_venc_primera_cuota','fecha_liquidacion','fecha_pagado','fecha_pago_com_gest'];
+const pn = v => parseFloat(String(v||'').replace(',','.')) || 0;
 
-    const pn = v => parseFloat(String(v||'').replace(',','.')) || 0;
+const toDisp = v => {
+  if (!v) return '';
+  const s = v.includes('T') ? v.split('T')[0] : v;
+  if (!s.includes('-')) return v;
+  const [y,m,d] = s.split('-');
+  return `${d}/${m}/${y}`;
+};
 
-    // ISO → DD/MM/AAAA
-    const toDisp = v => {
-      if (!v) return '';
-      const s = v.includes('T') ? v.split('T')[0] : v;
-      if (!s.includes('-')) return v;
-      const [y,m,d] = s.split('-');
-      return `${d}/${m}/${y}`;
-    };
+const toISO = v => {
+  if (!v || !v.trim()) return null;
+  const p = v.trim().split('/');
+  if (p.length===3 && p[2].length===4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
+  if (v.includes('-')) return v.split('T')[0];
+  return null;
+};
 
-    // DD/MM/AAAA → ISO
-    const toISO = v => {
-      if (!v || !v.trim()) return null;
-      const p = v.trim().split('/');
-      if (p.length === 3 && p[2].length === 4) return `${p[2]}-${p[1].padStart(2,'0')}-${p[0].padStart(2,'0')}`;
-      if (v.includes('-')) return v.split('T')[0];
-      return null;
-    };
+const calcular = f => {
+  const imp=pn(f.importe_solicitado), gest=pn(f.gasto_gestoria);
+  const impCred=imp*0.012, comLukaya=imp*0.02;
+  return {
+    impCred, comLukaya,
+    aLiquidar: imp-impCred-comLukaya-gest,
+    ganancia: pn(f.retribucion_banco)+comLukaya-pn(f.comision_gestora_interior)-pn(f.comision_operativo)-pn(f.pago_extras)
+  };
+};
 
-    const calcular = f => {
-      const imp=pn(f.importe_solicitado), gest=pn(f.gasto_gestoria);
-      const extras=pn(f.pago_extras), comOp=pn(f.comision_operativo);
-      const comGest=pn(f.comision_gestora_interior), retrib=pn(f.retribucion_banco);
-      const impCred=imp*0.012, comLukaya=imp*0.02;
-      return { impCred, comLukaya, aLiquidar:imp-impCred-comLukaya-gest, ganancia:retrib+comLukaya-comGest-comOp-extras };
-    };
+const fmt = v => (v===null||v===undefined||v==='') ? '-'
+  : new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(v);
 
-    const fmt = v => (v===null||v===undefined||v==='') ? '-'
-      : new Intl.NumberFormat('es-AR',{style:'currency',currency:'ARS',maximumFractionDigits:0}).format(v);
+const fmtDate = v => v ? toDisp(v) : '-';
 
-    const fmtDate = v => { if(!v) return '-'; return toDisp(v); };
+const badgeCls = e => {
+  if (!e) return 'badge';
+  const l=e.toLowerCase();
+  if(l.includes('liquidado')) return 'badge b-liq';
+  if(l.includes('solicitado')) return 'badge b-sol';
+  if(l.includes('cargada')) return 'badge b-carg';
+  if(l.includes('proceso')) return 'badge b-proc';
+  if(l.includes('baja')) return 'badge b-baja';
+  return 'badge';
+};
 
-    const badgeCls = e => {
-      if (!e) return 'badge';
-      const l = e.toLowerCase();
-      if(l.includes('liquidado')) return 'badge badge-liquidado';
-      if(l.includes('solicitado')) return 'badge badge-solicitado';
-      if(l.includes('cargada')) return 'badge badge-cargada';
-      if(l.includes('proceso')) return 'badge badge-proceso';
-      if(l.includes('baja')) return 'badge badge-baja';
-      return 'badge';
-    };
+// ── Estos componentes están FUERA de FormModal → no se remontan en cada render ──
 
-    const Cb = ({val}) => <span className={`cb ${val?'yes':''}`}>{val?'✓':''}</span>;
-
-
-
-    // ── LOGIN ──
-    function Login({onLogin}) {
-      const [u,setU]=React.useState(''), [p,setP]=React.useState(''), [err,setErr]=React.useState('');
-      const go = e => {
-        e.preventDefault();
-        if(u===ADMIN_USER && p===ADMIN_PASS){ sessionStorage.setItem('lk','1'); onLogin(); }
-        else setErr('Usuario o contraseña incorrectos');
-      };
-      return (
-        <div className="login-screen">
-          <div className="login-box">
-            <div className="login-logo">LUKAYA<span>!</span></div>
-            <div className="login-sub">Sistema de Control de Operaciones</div>
-            {err && <div className="login-error">{err}</div>}
-            <form onSubmit={go}>
-              <div className="login-field"><label>Usuario</label><input value={u} onChange={e=>{setU(e.target.value);setErr('');}} autoFocus /></div>
-              <div className="login-field"><label>Contraseña</label><input type="password" value={p} onChange={e=>{setP(e.target.value);setErr('');}} /></div>
-              <button type="submit" className="login-btn">Ingresar</button>
-            </form>
-          </div>
-        </div>
-      );
+const FField = ({label, name, form, set, isDate, isNum, options, wide}) => (
+  <div className="fg" style={wide?{gridColumn:'span 2'}:{}}>
+    <label>{label}</label>
+    {options
+      ? <select value={form[name]||''} onChange={e=>set(name,e.target.value)}>
+          <option value="">-- Seleccionar --</option>
+          {options.map(o=><option key={o} value={o}>{o}</option>)}
+        </select>
+      : <input
+          type={isNum?'number':'text'}
+          placeholder={isDate?'DD/MM/AAAA':undefined}
+          value={form[name]??''}
+          onChange={e=>set(name,e.target.value)}
+          maxLength={isDate?10:undefined}
+        />
     }
+  </div>
+);
 
-    // ── FORM MODAL ──
-    function FormModal({row, onClose, onSaved}) {
-      const init = () => {
-        if(!row) return {...EMPTY};
-        const f={...row};
-        DATE_FIELDS.forEach(k=>{ f[k]=toDisp(f[k]); });
-        return f;
-      };
-      const [form,setForm]=React.useState(init);
-      const [saving,setSaving]=React.useState(false);
-      const calc=calcular(form);
-      const set=(k,v)=>setForm(f=>({...f,[k]:v}));
+const CFField = ({label, value}) => (
+  <div className="fg">
+    <label>{label}</label>
+    <input readOnly value={fmt(value)} />
+  </div>
+);
 
-      const save = async () => {
-        setSaving(true);
-        const p={...form};
-        if(!row) delete p.id;
-        p.importe_solicitado=pn(form.importe_solicitado)||null;
-        p.gasto_gestoria=pn(form.gasto_gestoria)||null;
-        p.pago_extras=pn(form.pago_extras)||null;
-        p.comision_operativo=pn(form.comision_operativo)||null;
-        p.comision_gestora_interior=pn(form.comision_gestora_interior)||null;
-        p.retribucion_banco=pn(form.retribucion_banco)||null;
-        p.cant_cuotas=parseInt(form.cant_cuotas)||null;
-        DATE_FIELDS.forEach(k=>{ p[k]=toISO(form[k]); });
-        const fn = row
-          ? sb.from('lukaya_solicitudes').update(p).eq('id',row.id)
-          : sb.from('lukaya_solicitudes').insert(p);
-        const {error}=await fn;
-        setSaving(false);
-        if(!error){ onSaved(); onClose(); } else alert('Error: '+error.message);
-      };
+const ChkField = ({label, name, form, set}) => (
+  <div className={`ci ${form[name]?'on':''}`} onClick={()=>set(name,!form[name])}>
+    <input type="checkbox" checked={!!form[name]} onChange={()=>{}} />
+    <label>{label}</label>
+  </div>
+);
 
-      const F=({label,name,type='text',options})=>(
-        <div className="form-group">
-          <label>{label}</label>
-          {options
-            ? <select value={form[name]||''} onChange={e=>set(name,e.target.value)}>
-                <option value="">-- Seleccionar --</option>
-                {options.map(o=><option key={o} value={o}>{o}</option>)}
-              </select>
-            : <input
-                type="text"
-                placeholder={type==='date'?'DD/MM/AAAA':undefined}
-                value={form[name]??''}
-                onChange={e=>set(name,e.target.value)}
-                maxLength={type==='date'?10:undefined}
-              />
-          }
+// ────────────────────────────────────────────────────────────────────────
+
+function Login({onLogin}) {
+  const [u,setU]=React.useState(''), [p,setP]=React.useState(''), [err,setErr]=React.useState('');
+  const go = e => {
+    e.preventDefault();
+    if(u===ADMIN_USER && p===ADMIN_PASS){ sessionStorage.setItem('lk','1'); onLogin(); }
+    else setErr('Usuario o contraseña incorrectos');
+  };
+  return (
+    <div className="login-screen">
+      <div className="login-box">
+        <div className="login-logo">LUKAYA<span>!</span></div>
+        <div className="login-sub">Sistema de Control de Operaciones</div>
+        {err && <div className="lerr">{err}</div>}
+        <form onSubmit={go}>
+          <div className="lf"><label>Usuario</label><input value={u} onChange={e=>{setU(e.target.value);setErr('');}} autoFocus /></div>
+          <div className="lf"><label>Contraseña</label><input type="password" value={p} onChange={e=>{setP(e.target.value);setErr('');}} /></div>
+          <button type="submit" className="lbtn">Ingresar</button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function FormModal({row, onClose, onSaved}) {
+  const init = () => {
+    if (!row) return {...EMPTY};
+    const f={...row};
+    DATE_FIELDS.forEach(k=>{ f[k]=toDisp(f[k]); });
+    return f;
+  };
+  const [form,setForm] = React.useState(init);
+  const [saving,setSaving] = React.useState(false);
+  const calc = calcular(form);
+  const set = (k,v) => setForm(f=>({...f,[k]:v}));
+
+  const save = async () => {
+    setSaving(true);
+    const p={...form};
+    if(!row) delete p.id;
+    p.importe_solicitado = pn(form.importe_solicitado)||null;
+    p.gasto_gestoria     = pn(form.gasto_gestoria)||null;
+    p.pago_extras        = pn(form.pago_extras)||null;
+    p.comision_operativo = pn(form.comision_operativo)||null;
+    p.comision_gestora_interior = pn(form.comision_gestora_interior)||null;
+    p.retribucion_banco  = pn(form.retribucion_banco)||null;
+    p.cant_cuotas        = parseInt(form.cant_cuotas)||null;
+    DATE_FIELDS.forEach(k=>{ p[k]=toISO(form[k]); });
+    const fn = row
+      ? sb.from('lukaya_solicitudes').update(p).eq('id',row.id)
+      : sb.from('lukaya_solicitudes').insert(p);
+    const {error} = await fn;
+    setSaving(false);
+    if(!error){ onSaved(); onClose(); } else alert('Error: '+error.message);
+  };
+
+  // Pasamos form y set como props → FField/CFField/ChkField son componentes externos estables
+  const fp = {form, set};
+
+  return (
+    <div className="overlay">
+      <div className="mbox">
+        <div className="mhead">
+          <span style={{fontSize:16,fontWeight:700}}>{row?'✏️ Editar Operación':'➕ Nueva Operación'}</span>
+          <button onClick={onClose} style={{background:'none',border:'none',color:'white',fontSize:24,cursor:'pointer',lineHeight:1}}>×</button>
         </div>
-      );
+        <div className="mbody">
 
-      const CF=({label,value})=>(
-        <div className="form-group">
-          <label>{label}</label>
-          <input readOnly value={value!=null ? fmt(value) : '-'} />
-        </div>
-      );
-
-      const Chk=({name,label})=>(
-        <div className={`check-item ${form[name]?'checked':''}`} onClick={()=>set(name,!form[name])}>
-          <input type="checkbox" checked={!!form[name]} onChange={()=>{}} />
-          <label>{label}</label>
-        </div>
-      );
-
-      return (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <div className="modal-header">
-              <span style={{fontSize:16,fontWeight:700}}>{row?'✏️ Editar Operación':'➕ Nueva Operación'}</span>
-              <button onClick={onClose} style={{background:'none',border:'none',color:'white',fontSize:24,cursor:'pointer',lineHeight:1}}>×</button>
-            </div>
-            <div className="modal-body">
-              <div className="section-title">Datos Generales</div>
-              <div className="form-grid">
-                <F label="Fecha Solicitud" name="fecha_solicitud" type="date" />
-                <F label="Estado" name="estado" options={ESTADOS} />
-                <F label="Banco" name="banco" options={BANCOS} />
-                <F label="Concesionaria" name="concesionaria" />
-                <F label="Provincia" name="provincia" options={PROVINCIAS} />
-                <F label="Localidad" name="localidad" />
-              </div>
-
-              <div className="section-title">Datos del Cliente</div>
-              <div className="form-grid">
-                <F label="DNI Cliente" name="dni_cliente" />
-                <F label="Nombre Cliente" name="nombre_cliente" />
-                <F label="Teléfono" name="telefono" />
-                <F label="Mail" name="mail" />
-              </div>
-
-              <div className="section-title">Datos del Vehículo</div>
-              <div className="form-grid">
-                <F label="Dominio" name="dominio_vehiculo" />
-                <div className="form-group" style={{gridColumn:'span 2'}}>
-                  <label>Vehículo</label>
-                  <input type="text" value={form.vehiculo||''} onChange={e=>set('vehiculo',e.target.value)} />
-                </div>
-              </div>
-
-              <div className="section-title">Datos del Crédito</div>
-              <div className="form-grid">
-                <F label="Fecha Venc. 1° Cuota" name="fecha_venc_primera_cuota" type="date" />
-                <F label="Tipo Cuota" name="tipo_cuota" options={['FIJA','VARIABLE']} />
-                <F label="Cantidad Cuotas" name="cant_cuotas" type="number" />
-                <F label="Tasa" name="tasa" />
-                <F label="Importe Solicitado" name="importe_solicitado" type="number" />
-                <F label="Gasto Gestoría" name="gasto_gestoria" type="number" />
-                <CF label="1,2% Imp. Crédito (auto)" value={calc.impCred} />
-                <CF label="Comisión LUKAYA! 2% (auto)" value={calc.comLukaya} />
-                <CF label="A Liquidar Agencia (auto)" value={calc.aLiquidar} />
-              </div>
-
-              <div className="section-title">Documentación</div>
-              <div className="check-grid">
-                <Chk name="documento_01_08" label="Documento 01/08" />
-                <Chk name="titulo_unidad" label="Título de la Unidad" />
-                <Chk name="verif_policial" label="Verif. Policial (12)" />
-                <Chk name="informe_dominio" label="Informe Dominio" />
-                <Chk name="constancia_entrega" label="Constancia de Entrega" />
-              </div>
-
-              <div className="section-title">Liquidación</div>
-              <div className="form-grid">
-                <F label="Fecha Liquidación" name="fecha_liquidacion" type="date" />
-                <F label="Pago Extras" name="pago_extras" type="number" />
-                <F label="Comisión Operativo" name="comision_operativo" type="number" />
-                <F label="Comisión Gestora Interior" name="comision_gestora_interior" type="number" />
-                <F label="Retribución Banco" name="retribucion_banco" type="number" />
-                <CF label="Ganancia LUKAYA! (auto)" value={calc.ganancia} />
-              </div>
-
-              <div className="section-title">Pago</div>
-              <div className="form-grid">
-                <div className="form-group">
-                  <label>Pagado</label>
-                  <div className={`check-item ${form.pagado?'checked':''}`} onClick={()=>set('pagado',!form.pagado)} style={{marginTop:4}}>
-                    <input type="checkbox" checked={!!form.pagado} onChange={()=>{}} />
-                    <label>Sí, pagado</label>
-                  </div>
-                </div>
-                {form.pagado && <div className="form-group"><label>Fecha Pagado</label><input type="text" placeholder="DD/MM/AAAA" value={form.fecha_pagado??''} onChange={e=>set('fecha_pagado',e.target.value)} maxLength={10} /></div>}
-                <div className="form-group">
-                  <label>Pago Com. Gestora</label>
-                  <div className={`check-item ${form.pago_com_gest?'checked':''}`} onClick={()=>set('pago_com_gest',!form.pago_com_gest)} style={{marginTop:4}}>
-                    <input type="checkbox" checked={!!form.pago_com_gest} onChange={()=>{}} />
-                    <label>Sí, pagado</label>
-                  </div>
-                </div>
-                {form.pago_com_gest && <div className="form-group"><label>Fecha Pago Com. Gest.</label><input type="text" placeholder="DD/MM/AAAA" value={form.fecha_pago_com_gest??''} onChange={e=>set('fecha_pago_com_gest',e.target.value)} maxLength={10} /></div>}
-              </div>
-
-              <div className="section-title">Observaciones</div>
-              <div className="form-group">
-                <textarea rows={3} value={form.observaciones||''} onChange={e=>set('observaciones',e.target.value)}
-                  style={{width:'100%',border:'1px solid #d1d5db',borderRadius:6,padding:'7px 10px',fontSize:13,resize:'vertical',outline:'none'}} />
-              </div>
-
-              <div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:20,paddingTop:16,borderTop:'1px solid #e5e7eb'}}>
-                <button className="btn btn-secondary" onClick={onClose}>Cancelar</button>
-                <button className="btn btn-success" onClick={save} disabled={saving}>{saving?'Guardando...':'💾 Guardar'}</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // ── DETAIL MODAL ──
-    function DetailModal({row, onClose, onEdit}) {
-      const c=calcular(row);
-      const g={display:'grid',gridTemplateColumns:'repeat(auto-fill, minmax(160px,1fr))',gap:'4px 20px'};
-      const It=({label,value,money})=>(
-        <div style={{display:'flex',flexDirection:'column',marginBottom:10}}>
-          <span style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:'0.05em'}}>{label}</span>
-          <span style={{fontSize:13,color:money?'#166534':'#111827',fontWeight:money?700:400}}>{money?fmt(value):(value||'-')}</span>
-        </div>
-      );
-      return (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <div className="modal-header">
-              <div>
-                <div style={{fontSize:16,fontWeight:700}}>{row.nombre_cliente||'Sin nombre'}</div>
-                <div style={{fontSize:12,opacity:0.8}}>{row.vehiculo||''}</div>
-              </div>
-              <div style={{display:'flex',gap:8,alignItems:'center'}}>
-                <button className="btn btn-secondary btn-sm" onClick={onEdit}>✏️ Editar</button>
-                <button onClick={onClose} style={{background:'none',border:'none',color:'white',fontSize:24,cursor:'pointer',lineHeight:1}}>×</button>
-              </div>
-            </div>
-            <div className="modal-body">
-              <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12}}>
-                <span className={badgeCls(row.estado)}>{row.estado}</span>
-                <span style={{fontSize:12,color:'#6b7280'}}>Solicitud: {fmtDate(row.fecha_solicitud)}</span>
-                {row.fecha_liquidacion && <span style={{fontSize:12,color:'#6b7280'}}>Liquid.: {fmtDate(row.fecha_liquidacion)}</span>}
-              </div>
-              <div className="section-title">Datos Generales</div>
-              <div style={g}>
-                <It label="Banco" value={row.banco}/><It label="Concesionaria" value={row.concesionaria}/>
-                <It label="Provincia" value={row.provincia}/><It label="Localidad" value={row.localidad}/>
-              </div>
-              <div className="section-title">Cliente</div>
-              <div style={g}>
-                <It label="DNI" value={row.dni_cliente}/><It label="Nombre" value={row.nombre_cliente}/>
-                <It label="Teléfono" value={row.telefono}/><It label="Mail" value={row.mail}/>
-              </div>
-              <div className="section-title">Vehículo</div>
-              <div style={g}>
-                <It label="Dominio" value={row.dominio_vehiculo}/><It label="Vehículo" value={row.vehiculo}/>
-              </div>
-              <div className="section-title">Crédito</div>
-              <div style={g}>
-                <It label="Tipo Cuota" value={row.tipo_cuota}/><It label="Cuotas" value={row.cant_cuotas}/>
-                <It label="Tasa" value={row.tasa?`${row.tasa}%`:'-'}/><It label="Fecha Venc. 1° Cuota" value={fmtDate(row.fecha_venc_primera_cuota)}/>
-                <It label="Importe Solicitado" value={row.importe_solicitado} money/><It label="Gasto Gestoría" value={row.gasto_gestoria} money/>
-                <It label="1,2% Imp. Crédito" value={c.impCred} money/><It label="Comisión LUKAYA! (2%)" value={c.comLukaya} money/>
-                <It label="A Liquidar Agencia" value={c.aLiquidar} money/>
-              </div>
-              <div className="section-title">Documentación</div>
-              <div className="check-grid">
-                {[['documento_01_08','Documento 01/08'],['titulo_unidad','Título Unidad'],['verif_policial','Verif. Policial'],['informe_dominio','Informe Dominio'],['constancia_entrega','Constancia Entrega']].map(([k,l])=>(
-                  <div key={k} className={`check-item ${row[k]?'checked':''}`} style={{cursor:'default'}}>
-                    <Cb val={row[k]}/><label style={{cursor:'default'}}>{l}</label>
-                  </div>
-                ))}
-              </div>
-              <div className="section-title">Liquidación</div>
-              <div style={g}>
-                <It label="Fecha Liquid." value={fmtDate(row.fecha_liquidacion)}/><It label="Pago Extras" value={row.pago_extras} money/>
-                <It label="Com. Operativo" value={row.comision_operativo} money/><It label="Com. Gestora" value={row.comision_gestora_interior} money/>
-                <It label="Retrib. Banco" value={row.retribucion_banco} money/><It label="Ganancia LUKAYA!" value={c.ganancia} money/>
-              </div>
-              <div className="section-title">Pago</div>
-              <div style={g}>
-                <It label="Pagado" value={row.pagado?'✅ Sí':'❌ No'}/>
-                {row.pagado && <It label="Fecha Pagado" value={fmtDate(row.fecha_pagado)}/>}
-                <It label="Pago Com. Gestora" value={row.pago_com_gest?'✅ Sí':'❌ No'}/>
-                {row.pago_com_gest && <It label="Fecha Pago Com. Gest." value={fmtDate(row.fecha_pago_com_gest)}/>}
-              </div>
-              {row.observaciones && <>
-                <div className="section-title">Observaciones</div>
-                <div style={{background:'#fef9c3',border:'1px solid #fde047',borderRadius:6,padding:10,fontSize:13}}>{row.observaciones}</div>
-              </>}
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // ── SISTEMA ──
-    function Sistema({onLogout}) {
-      const [rows,setRows]=React.useState([]);
-      const [loading,setLoading]=React.useState(true);
-      const [modalNew,setModalNew]=React.useState(false);
-      const [modalEdit,setModalEdit]=React.useState(null);
-      const [modalDetail,setModalDetail]=React.useState(null);
-      const [deleting,setDeleting]=React.useState(null);
-      const [fEstado,setFEstado]=React.useState('');
-      const [fBanco,setFBanco]=React.useState('');
-      const [search,setSearch]=React.useState('');
-
-      const load=async()=>{ setLoading(true); const{data}=await sb.from('lukaya_solicitudes').select('*').order('created_at',{ascending:false}); setRows(data||[]); setLoading(false); };
-      React.useEffect(()=>{ load(); },[]);
-
-      const del=async id=>{ await sb.from('lukaya_solicitudes').delete().eq('id',id); setDeleting(null); load(); };
-
-      const filtered=rows.filter(r=>{
-        if(fEstado && r.estado!==fEstado) return false;
-        if(fBanco && r.banco!==fBanco) return false;
-        if(search){ const s=search.toLowerCase(); return (r.nombre_cliente||'').toLowerCase().includes(s)||(r.dni_cliente||'').includes(s)||(r.vehiculo||'').toLowerCase().includes(s)||(r.dominio_vehiculo||'').toLowerCase().includes(s)||(r.concesionaria||'').toLowerCase().includes(s); }
-        return true;
-      });
-
-      const totImp=filtered.reduce((s,r)=>s+pn(r.importe_solicitado),0);
-      const totGan=filtered.reduce((s,r)=>s+calcular(r).ganancia,0);
-      const totLiq=filtered.filter(r=>r.estado==='LIQUIDADO').length;
-
-      return (
-        <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
-          <div className="topbar">
-            <div className="logo">LUKAYA<span>!</span></div>
-            <div style={{display:'flex',alignItems:'center',gap:16}}>
-              <span style={{fontSize:13,opacity:0.7}}>Sistema de Control de Operaciones</span>
-              <button onClick={onLogout} className="btn btn-secondary btn-sm">🚪 Salir</button>
-            </div>
+          <div className="stitle">Datos Generales</div>
+          <div className="fgrid">
+            <FField label="Fecha Solicitud"   name="fecha_solicitud"  isDate {...fp} />
+            <FField label="Estado"            name="estado"           options={ESTADOS} {...fp} />
+            <FField label="Banco"             name="banco"            options={BANCOS}  {...fp} />
+            <FField label="Concesionaria"     name="concesionaria"    {...fp} />
+            <FField label="Provincia"         name="provincia"        options={PROVS}   {...fp} />
+            <FField label="Localidad"         name="localidad"        {...fp} />
           </div>
 
-          <div className="toolbar">
-            <button className="btn btn-primary" onClick={()=>setModalNew(true)}>➕ Nueva Operación</button>
-            <input placeholder="🔍 Buscar cliente, DNI, dominio..." value={search} onChange={e=>setSearch(e.target.value)} style={{minWidth:240}} />
-            <select value={fEstado} onChange={e=>setFEstado(e.target.value)}>
-              <option value="">Todos los estados</option>
-              {ESTADOS.map(e=><option key={e} value={e}>{e}</option>)}
-            </select>
-            <select value={fBanco} onChange={e=>setFBanco(e.target.value)}>
-              <option value="">Todos los bancos</option>
-              {BANCOS.map(b=><option key={b} value={b}>{b}</option>)}
-            </select>
-            <span style={{marginLeft:'auto',fontSize:12,color:'#6b7280'}}>{filtered.length} operación{filtered.length!==1?'es':''}</span>
+          <div className="stitle">Datos del Cliente</div>
+          <div className="fgrid">
+            <FField label="DNI Cliente"    name="dni_cliente"    {...fp} />
+            <FField label="Nombre Cliente" name="nombre_cliente" {...fp} />
+            <FField label="Teléfono"       name="telefono"       {...fp} />
+            <FField label="Mail"           name="mail"           {...fp} />
           </div>
 
-          <div className="totals-bar">
-            <div><span>Total: </span><strong>{filtered.length}</strong></div>
-            <div><span>Liquidadas: </span><strong>{totLiq}</strong></div>
-            <div><span>Importe total: </span><strong>{fmt(totImp)}</strong></div>
-            <div><span>Ganancia total LUKAYA!: </span><strong>{fmt(totGan)}</strong></div>
+          <div className="stitle">Datos del Vehículo</div>
+          <div className="fgrid">
+            <FField label="Dominio"   name="dominio_vehiculo" {...fp} />
+            <FField label="Vehículo"  name="vehiculo"         wide {...fp} />
           </div>
 
-          <div className="table-container" style={{flex:1,background:'white'}}>
-            {loading ? <div className="loading">⏳ Cargando operaciones...</div>
-            : filtered.length===0 ? (
-              <div className="empty">
-                <div style={{fontSize:40,marginBottom:8}}>📋</div>
-                <div style={{fontSize:15,fontWeight:600}}>No hay operaciones</div>
-                <div style={{fontSize:13,marginTop:4}}>Hacé clic en "Nueva Operación" para comenzar</div>
+          <div className="stitle">Datos del Crédito</div>
+          <div className="fgrid">
+            <FField label="Fecha Venc. 1° Cuota" name="fecha_venc_primera_cuota" isDate {...fp} />
+            <FField label="Tipo Cuota"           name="tipo_cuota"   options={['FIJA','VARIABLE']} {...fp} />
+            <FField label="Cantidad Cuotas"      name="cant_cuotas"  isNum  {...fp} />
+            <FField label="Tasa"                 name="tasa"         {...fp} />
+            <FField label="Importe Solicitado"   name="importe_solicitado" isNum {...fp} />
+            <FField label="Gasto Gestoría"       name="gasto_gestoria"     isNum {...fp} />
+            <CFField label="1,2% Imp. Crédito (auto)"    value={calc.impCred}   />
+            <CFField label="Comisión LUKAYA! 2% (auto)"  value={calc.comLukaya} />
+            <CFField label="A Liquidar Agencia (auto)"   value={calc.aLiquidar} />
+          </div>
+
+          <div className="stitle">Documentación</div>
+          <div className="cgrid">
+            <ChkField label="Documento 01/08"      name="documento_01_08"    {...fp} />
+            <ChkField label="Título de la Unidad"  name="titulo_unidad"      {...fp} />
+            <ChkField label="Verif. Policial (12)" name="verif_policial"     {...fp} />
+            <ChkField label="Informe Dominio"      name="informe_dominio"    {...fp} />
+            <ChkField label="Constancia de Entrega" name="constancia_entrega" {...fp} />
+          </div>
+
+          <div className="stitle">Liquidación</div>
+          <div className="fgrid">
+            <FField label="Fecha Liquidación"         name="fecha_liquidacion"         isDate {...fp} />
+            <FField label="Pago Extras"               name="pago_extras"               isNum  {...fp} />
+            <FField label="Comisión Operativo"        name="comision_operativo"        isNum  {...fp} />
+            <FField label="Comisión Gestora Interior" name="comision_gestora_interior" isNum  {...fp} />
+            <FField label="Retribución Banco"         name="retribucion_banco"         isNum  {...fp} />
+            <CFField label="Ganancia LUKAYA! (auto)"  value={calc.ganancia} />
+          </div>
+
+          <div className="stitle">Pago</div>
+          <div className="fgrid">
+            <div className="fg">
+              <label>Pagado</label>
+              <div className={`ci ${form.pagado?'on':''}`} onClick={()=>set('pagado',!form.pagado)} style={{marginTop:4}}>
+                <input type="checkbox" checked={!!form.pagado} onChange={()=>{}} />
+                <label>Sí, pagado</label>
               </div>
-            ) : (
-              <table>
-                <thead>
-                  <tr>
-                    <th>#</th><th>F. Solicitud</th><th>Estado</th><th>Banco</th><th>Concesionaria</th>
-                    <th>Cliente</th><th>DNI</th><th>Vehículo</th><th>Dom.</th><th>Cuotas</th>
-                    <th>Importe Sol.</th><th>A Liquidar</th><th>1,2% Imp.</th><th>Com. LUKAYA!</th>
-                    <th>Com. Gestora</th><th>Retrib. Banco</th><th>Ganancia</th>
-                    <th style={{textAlign:'center'}}>Doc</th><th style={{textAlign:'center'}}>Tít.</th>
-                    <th style={{textAlign:'center'}}>Ver.</th><th style={{textAlign:'center'}}>Inf.</th>
-                    <th style={{textAlign:'center'}}>Ent.</th><th>F. Liquid.</th>
-                    <th style={{textAlign:'center'}}>Pagado</th><th>Acciones</th>
+            </div>
+            {form.pagado && <FField label="Fecha Pagado" name="fecha_pagado" isDate {...fp} />}
+            <div className="fg">
+              <label>Pago Com. Gestora</label>
+              <div className={`ci ${form.pago_com_gest?'on':''}`} onClick={()=>set('pago_com_gest',!form.pago_com_gest)} style={{marginTop:4}}>
+                <input type="checkbox" checked={!!form.pago_com_gest} onChange={()=>{}} />
+                <label>Sí, pagado</label>
+              </div>
+            </div>
+            {form.pago_com_gest && <FField label="Fecha Pago Com. Gest." name="fecha_pago_com_gest" isDate {...fp} />}
+          </div>
+
+          <div className="stitle">Observaciones</div>
+          <div className="fg">
+            <textarea rows={3} value={form.observaciones||''} onChange={e=>set('observaciones',e.target.value)}
+              style={{width:'100%',border:'1px solid #d1d5db',borderRadius:6,padding:'7px 10px',fontSize:13,resize:'vertical',outline:'none'}} />
+          </div>
+
+          <div style={{display:'flex',gap:10,justifyContent:'flex-end',marginTop:20,paddingTop:16,borderTop:'1px solid #e5e7eb'}}>
+            <button className="btn bn" onClick={onClose}>Cancelar</button>
+            <button className="btn bs" onClick={save} disabled={saving}>{saving?'Guardando...':'💾 Guardar'}</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function DetailModal({row, onClose, onEdit}) {
+  const c=calcular(row);
+  const g={display:'grid',gridTemplateColumns:'repeat(auto-fill,minmax(160px,1fr))',gap:'4px 20px'};
+  const It=({label,value,money})=>(
+    <div style={{display:'flex',flexDirection:'column',marginBottom:10}}>
+      <span style={{fontSize:10,fontWeight:700,color:'#6b7280',textTransform:'uppercase',letterSpacing:'.05em'}}>{label}</span>
+      <span style={{fontSize:13,color:money?'#166534':'#111827',fontWeight:money?700:400}}>{money?fmt(value):(value||'-')}</span>
+    </div>
+  );
+  const S=({t})=><div className="stitle">{t}</div>;
+  return (
+    <div className="overlay">
+      <div className="mbox">
+        <div className="mhead">
+          <div>
+            <div style={{fontSize:16,fontWeight:700}}>{row.nombre_cliente||'Sin nombre'}</div>
+            <div style={{fontSize:12,opacity:.8}}>{row.vehiculo||''}</div>
+          </div>
+          <div style={{display:'flex',gap:8,alignItems:'center'}}>
+            <button className="btn bn bsm" onClick={onEdit}>✏️ Editar</button>
+            <button onClick={onClose} style={{background:'none',border:'none',color:'white',fontSize:24,cursor:'pointer',lineHeight:1}}>×</button>
+          </div>
+        </div>
+        <div className="mbody">
+          <div style={{display:'flex',gap:8,alignItems:'center',marginBottom:12}}>
+            <span className={badgeCls(row.estado)}>{row.estado}</span>
+            <span style={{fontSize:12,color:'#6b7280'}}>Solicitud: {fmtDate(row.fecha_solicitud)}</span>
+            {row.fecha_liquidacion && <span style={{fontSize:12,color:'#6b7280'}}>Liquid.: {fmtDate(row.fecha_liquidacion)}</span>}
+          </div>
+          <S t="Datos Generales"/>
+          <div style={g}>
+            <It label="Banco" value={row.banco}/><It label="Concesionaria" value={row.concesionaria}/>
+            <It label="Provincia" value={row.provincia}/><It label="Localidad" value={row.localidad}/>
+          </div>
+          <S t="Cliente"/>
+          <div style={g}>
+            <It label="DNI" value={row.dni_cliente}/><It label="Nombre" value={row.nombre_cliente}/>
+            <It label="Teléfono" value={row.telefono}/><It label="Mail" value={row.mail}/>
+          </div>
+          <S t="Vehículo"/>
+          <div style={g}>
+            <It label="Dominio" value={row.dominio_vehiculo}/><It label="Vehículo" value={row.vehiculo}/>
+          </div>
+          <S t="Crédito"/>
+          <div style={g}>
+            <It label="Tipo Cuota" value={row.tipo_cuota}/><It label="Cuotas" value={row.cant_cuotas}/>
+            <It label="Tasa" value={row.tasa?`${row.tasa}%`:'-'}/><It label="Fecha Venc. 1° Cuota" value={fmtDate(row.fecha_venc_primera_cuota)}/>
+            <It label="Importe Solicitado" value={row.importe_solicitado} money/><It label="Gasto Gestoría" value={row.gasto_gestoria} money/>
+            <It label="1,2% Imp. Crédito" value={c.impCred} money/><It label="Comisión LUKAYA! (2%)" value={c.comLukaya} money/>
+            <It label="A Liquidar Agencia" value={c.aLiquidar} money/>
+          </div>
+          <S t="Documentación"/>
+          <div className="cgrid">
+            {[['documento_01_08','Documento 01/08'],['titulo_unidad','Título Unidad'],['verif_policial','Verif. Policial'],['informe_dominio','Informe Dominio'],['constancia_entrega','Constancia Entrega']].map(([k,l])=>(
+              <div key={k} className={`ci ${row[k]?'on':''}`} style={{cursor:'default'}}>
+                <span className={`cb ${row[k]?'y':''}`}>{row[k]?'✓':''}</span>
+                <label style={{cursor:'default'}}>{l}</label>
+              </div>
+            ))}
+          </div>
+          <S t="Liquidación"/>
+          <div style={g}>
+            <It label="Fecha Liquid." value={fmtDate(row.fecha_liquidacion)}/><It label="Pago Extras" value={row.pago_extras} money/>
+            <It label="Com. Operativo" value={row.comision_operativo} money/><It label="Com. Gestora" value={row.comision_gestora_interior} money/>
+            <It label="Retrib. Banco" value={row.retribucion_banco} money/><It label="Ganancia LUKAYA!" value={c.ganancia} money/>
+          </div>
+          <S t="Pago"/>
+          <div style={g}>
+            <It label="Pagado" value={row.pagado?'✅ Sí':'❌ No'}/>
+            {row.pagado && <It label="Fecha Pagado" value={fmtDate(row.fecha_pagado)}/>}
+            <It label="Pago Com. Gestora" value={row.pago_com_gest?'✅ Sí':'❌ No'}/>
+            {row.pago_com_gest && <It label="Fecha Pago Com. Gest." value={fmtDate(row.fecha_pago_com_gest)}/>}
+          </div>
+          {row.observaciones && <>
+            <S t="Observaciones"/>
+            <div style={{background:'#fef9c3',border:'1px solid #fde047',borderRadius:6,padding:10,fontSize:13}}>{row.observaciones}</div>
+          </>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function Sistema({onLogout}) {
+  const [rows,setRows]=React.useState([]);
+  const [loading,setLoading]=React.useState(true);
+  const [modalNew,setModalNew]=React.useState(false);
+  const [modalEdit,setModalEdit]=React.useState(null);
+  const [modalDetail,setModalDetail]=React.useState(null);
+  const [deleting,setDeleting]=React.useState(null);
+  const [fEst,setFEst]=React.useState('');
+  const [fBco,setFBco]=React.useState('');
+  const [search,setSearch]=React.useState('');
+
+  const load=async()=>{ setLoading(true); const{data}=await sb.from('lukaya_solicitudes').select('*').order('created_at',{ascending:false}); setRows(data||[]); setLoading(false); };
+  React.useEffect(()=>{ load(); },[]);
+
+  const del=async id=>{ await sb.from('lukaya_solicitudes').delete().eq('id',id); setDeleting(null); load(); };
+
+  const filtered=rows.filter(r=>{
+    if(fEst && r.estado!==fEst) return false;
+    if(fBco && r.banco!==fBco) return false;
+    if(search){ const s=search.toLowerCase(); return (r.nombre_cliente||'').toLowerCase().includes(s)||(r.dni_cliente||'').includes(s)||(r.vehiculo||'').toLowerCase().includes(s)||(r.dominio_vehiculo||'').toLowerCase().includes(s)||(r.concesionaria||'').toLowerCase().includes(s); }
+    return true;
+  });
+
+  const totImp=filtered.reduce((s,r)=>s+pn(r.importe_solicitado),0);
+  const totGan=filtered.reduce((s,r)=>s+calcular(r).ganancia,0);
+  const totLiq=filtered.filter(r=>r.estado==='LIQUIDADO').length;
+
+  return (
+    <div style={{minHeight:'100vh',display:'flex',flexDirection:'column'}}>
+      <div className="topbar">
+        <div className="logo">LUKAYA<span>!</span></div>
+        <div style={{display:'flex',alignItems:'center',gap:16}}>
+          <span style={{fontSize:13,opacity:.7}}>Sistema de Control de Operaciones</span>
+          <button onClick={onLogout} className="btn bn bsm">🚪 Salir</button>
+        </div>
+      </div>
+
+      <div className="toolbar">
+        <button className="btn bp" onClick={()=>setModalNew(true)}>➕ Nueva Operación</button>
+        <input placeholder="🔍 Buscar cliente, DNI, dominio..." value={search} onChange={e=>setSearch(e.target.value)} style={{minWidth:240}} />
+        <select value={fEst} onChange={e=>setFEst(e.target.value)}>
+          <option value="">Todos los estados</option>
+          {ESTADOS.map(e=><option key={e} value={e}>{e}</option>)}
+        </select>
+        <select value={fBco} onChange={e=>setFBco(e.target.value)}>
+          <option value="">Todos los bancos</option>
+          {BANCOS.map(b=><option key={b} value={b}>{b}</option>)}
+        </select>
+        <span style={{marginLeft:'auto',fontSize:12,color:'#6b7280'}}>{filtered.length} operación{filtered.length!==1?'es':''}</span>
+      </div>
+
+      <div className="tbar">
+        <div><span>Total: </span><strong>{filtered.length}</strong></div>
+        <div><span>Liquidadas: </span><strong>{totLiq}</strong></div>
+        <div><span>Importe total: </span><strong>{fmt(totImp)}</strong></div>
+        <div><span>Ganancia total LUKAYA!: </span><strong>{fmt(totGan)}</strong></div>
+      </div>
+
+      <div className="table-container" style={{flex:1,background:'white'}}>
+        {loading ? <div style={{textAlign:'center',padding:40,color:'#6b7280'}}>⏳ Cargando...</div>
+        : filtered.length===0 ? (
+          <div className="empty">
+            <div style={{fontSize:40,marginBottom:8}}>📋</div>
+            <div style={{fontSize:15,fontWeight:600}}>No hay operaciones</div>
+            <div style={{fontSize:13,marginTop:4}}>Hacé clic en "Nueva Operación" para comenzar</div>
+          </div>
+        ) : (
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>F. Solicitud</th><th>Estado</th><th>Banco</th><th>Concesionaria</th>
+                <th>Cliente</th><th>DNI</th><th>Vehículo</th><th>Dom.</th><th>Cuotas</th>
+                <th>Importe Sol.</th><th>A Liquidar</th><th>1,2% Imp.</th><th>Com. LUKAYA!</th>
+                <th>Com. Gestora</th><th>Retrib. Banco</th><th>Ganancia</th>
+                <th style={{textAlign:'center'}}>Doc</th><th style={{textAlign:'center'}}>Tít.</th>
+                <th style={{textAlign:'center'}}>Ver.</th><th style={{textAlign:'center'}}>Inf.</th>
+                <th style={{textAlign:'center'}}>Ent.</th><th>F. Liquid.</th>
+                <th style={{textAlign:'center'}}>Pagado</th><th>Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.map((r,i)=>{
+                const c=calcular(r);
+                const rc=r.estado==='LIQUIDADO'?'liq':r.estado==='BAJA'?'baja':'';
+                return (
+                  <tr key={r.id} className={rc}>
+                    <td style={{color:'#9ca3af',fontSize:11}}>{i+1}</td>
+                    <td>{fmtDate(r.fecha_solicitud)}</td>
+                    <td><span className={badgeCls(r.estado)}>{r.estado||'-'}</span></td>
+                    <td style={{fontWeight:600}}>{r.banco||'-'}</td>
+                    <td>{r.concesionaria||'-'}</td>
+                    <td style={{fontWeight:500}}>{r.nombre_cliente||'-'}</td>
+                    <td style={{color:'#6b7280'}}>{r.dni_cliente||'-'}</td>
+                    <td style={{maxWidth:180,overflow:'hidden',textOverflow:'ellipsis'}} title={r.vehiculo}>{r.vehiculo||'-'}</td>
+                    <td>{r.dominio_vehiculo||'-'}</td>
+                    <td style={{textAlign:'center'}}>{r.cant_cuotas||'-'}</td>
+                    <td style={{color:'#166534',fontWeight:600}}>{fmt(r.importe_solicitado)}</td>
+                    <td style={{color:'#166534',fontWeight:600}}>{fmt(c.aLiquidar)}</td>
+                    <td style={{color:'#6b7280'}}>{fmt(c.impCred)}</td>
+                    <td style={{color:'#166534',fontWeight:600}}>{fmt(c.comLukaya)}</td>
+                    <td style={{color:'#6b7280'}}>{fmt(r.comision_gestora_interior)}</td>
+                    <td style={{color:'#6b7280'}}>{fmt(r.retribucion_banco)}</td>
+                    <td style={{color:c.ganancia<0?'#dc2626':'#166534',fontWeight:700}}>{fmt(c.ganancia)}</td>
+                    <td style={{textAlign:'center'}}><span className={`cb ${r.documento_01_08?'y':''}`}>{r.documento_01_08?'✓':''}</span></td>
+                    <td style={{textAlign:'center'}}><span className={`cb ${r.titulo_unidad?'y':''}`}>{r.titulo_unidad?'✓':''}</span></td>
+                    <td style={{textAlign:'center'}}><span className={`cb ${r.verif_policial?'y':''}`}>{r.verif_policial?'✓':''}</span></td>
+                    <td style={{textAlign:'center'}}><span className={`cb ${r.informe_dominio?'y':''}`}>{r.informe_dominio?'✓':''}</span></td>
+                    <td style={{textAlign:'center'}}><span className={`cb ${r.constancia_entrega?'y':''}`}>{r.constancia_entrega?'✓':''}</span></td>
+                    <td>{fmtDate(r.fecha_liquidacion)}</td>
+                    <td style={{textAlign:'center'}}><span className={`cb ${r.pagado?'y':''}`}>{r.pagado?'✓':''}</span></td>
+                    <td>
+                      <div style={{display:'flex',gap:4}}>
+                        <button className="btn bn bsm" onClick={()=>setModalDetail(r)}>👁</button>
+                        <button className="btn bp bsm" onClick={()=>setModalEdit(r)}>✏️</button>
+                        <button className="btn bd bsm" onClick={()=>setDeleting(r)}>🗑</button>
+                      </div>
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filtered.map((r,i)=>{
-                    const c=calcular(r);
-                    const rc=r.estado==='LIQUIDADO'?'liquidado':r.estado==='BAJA'?'baja':'';
-                    return (
-                      <tr key={r.id} className={rc}>
-                        <td style={{color:'#9ca3af',fontSize:11}}>{i+1}</td>
-                        <td>{fmtDate(r.fecha_solicitud)}</td>
-                        <td><span className={badgeCls(r.estado)}>{r.estado||'-'}</span></td>
-                        <td style={{fontWeight:600}}>{r.banco||'-'}</td>
-                        <td>{r.concesionaria||'-'}</td>
-                        <td style={{fontWeight:500}}>{r.nombre_cliente||'-'}</td>
-                        <td style={{color:'#6b7280'}}>{r.dni_cliente||'-'}</td>
-                        <td style={{maxWidth:180,overflow:'hidden',textOverflow:'ellipsis'}} title={r.vehiculo}>{r.vehiculo||'-'}</td>
-                        <td>{r.dominio_vehiculo||'-'}</td>
-                        <td style={{textAlign:'center'}}>{r.cant_cuotas||'-'}</td>
-                        <td style={{color:'#166534',fontWeight:600}}>{fmt(r.importe_solicitado)}</td>
-                        <td style={{color:'#166534',fontWeight:600}}>{fmt(c.aLiquidar)}</td>
-                        <td style={{color:'#6b7280'}}>{fmt(c.impCred)}</td>
-                        <td style={{color:'#166534',fontWeight:600}}>{fmt(c.comLukaya)}</td>
-                        <td style={{color:'#6b7280'}}>{fmt(r.comision_gestora_interior)}</td>
-                        <td style={{color:'#6b7280'}}>{fmt(r.retribucion_banco)}</td>
-                        <td style={{color:c.ganancia<0?'#dc2626':'#166534',fontWeight:700}}>{fmt(c.ganancia)}</td>
-                        <td style={{textAlign:'center'}}><Cb val={r.documento_01_08}/></td>
-                        <td style={{textAlign:'center'}}><Cb val={r.titulo_unidad}/></td>
-                        <td style={{textAlign:'center'}}><Cb val={r.verif_policial}/></td>
-                        <td style={{textAlign:'center'}}><Cb val={r.informe_dominio}/></td>
-                        <td style={{textAlign:'center'}}><Cb val={r.constancia_entrega}/></td>
-                        <td>{fmtDate(r.fecha_liquidacion)}</td>
-                        <td style={{textAlign:'center'}}><Cb val={r.pagado}/></td>
-                        <td>
-                          <div style={{display:'flex',gap:4}}>
-                            <button className="btn btn-secondary btn-sm" onClick={()=>setModalDetail(r)}>👁</button>
-                            <button className="btn btn-primary btn-sm" onClick={()=>setModalEdit(r)}>✏️</button>
-                            <button className="btn btn-danger btn-sm" onClick={()=>setDeleting(r)}>🗑</button>
-                          </div>
-                        </td>
-                      </tr>
-                    );
-                  })}
-                </tbody>
-              </table>
-            )}
-          </div>
+                );
+              })}
+            </tbody>
+          </table>
+        )}
+      </div>
 
-          {modalNew && <FormModal onClose={()=>setModalNew(false)} onSaved={load} />}
-          {modalEdit && <FormModal row={modalEdit} onClose={()=>setModalEdit(null)} onSaved={load} />}
-          {modalDetail && <DetailModal row={modalDetail} onClose={()=>setModalDetail(null)} onEdit={()=>{ setModalEdit(modalDetail); setModalDetail(null); }} />}
+      {modalNew && <FormModal onClose={()=>setModalNew(false)} onSaved={load} />}
+      {modalEdit && <FormModal row={modalEdit} onClose={()=>setModalEdit(null)} onSaved={load} />}
+      {modalDetail && <DetailModal row={modalDetail} onClose={()=>setModalDetail(null)} onEdit={()=>{ setModalEdit(modalDetail); setModalDetail(null); }} />}
 
-          {deleting && (
-            <div className="delete-confirm">
-              <div className="delete-box">
-                <div style={{fontSize:36,marginBottom:12}}>🗑️</div>
-                <div style={{fontSize:16,fontWeight:700,marginBottom:8}}>¿Eliminar operación?</div>
-                <div style={{fontSize:13,color:'#6b7280',marginBottom:20}}>{deleting.nombre_cliente||'Sin nombre'} — {deleting.vehiculo||'Sin vehículo'}</div>
-                <div style={{display:'flex',gap:10,justifyContent:'center'}}>
-                  <button className="btn btn-secondary" onClick={()=>setDeleting(null)}>Cancelar</button>
-                  <button className="btn btn-danger" onClick={()=>del(deleting.id)}>Sí, eliminar</button>
-                </div>
-              </div>
+      {deleting && (
+        <div className="dconf">
+          <div className="dbox">
+            <div style={{fontSize:36,marginBottom:12}}>🗑️</div>
+            <div style={{fontSize:16,fontWeight:700,marginBottom:8}}>¿Eliminar operación?</div>
+            <div style={{fontSize:13,color:'#6b7280',marginBottom:20}}>{deleting.nombre_cliente||'Sin nombre'} — {deleting.vehiculo||'Sin vehículo'}</div>
+            <div style={{display:'flex',gap:10,justifyContent:'center'}}>
+              <button className="btn bn" onClick={()=>setDeleting(null)}>Cancelar</button>
+              <button className="btn bd" onClick={()=>del(deleting.id)}>Sí, eliminar</button>
             </div>
-          )}
+          </div>
         </div>
-      );
-    }
+      )}
+    </div>
+  );
+}
 
-    // ── APP ROOT ──
-    function App() {
-      const [logged,setLogged]=React.useState(sessionStorage.getItem('lk')==='1');
-      const logout=()=>{ sessionStorage.removeItem('lk'); setLogged(false); };
-      return logged ? <Sistema onLogout={logout} /> : <Login onLogin={()=>setLogged(true)} />;
-    }
+function App() {
+  const [logged,setLogged]=React.useState(sessionStorage.getItem('lk')==='1');
+  const logout=()=>{ sessionStorage.removeItem('lk'); setLogged(false); };
+  return logged ? <Sistema onLogout={logout} /> : <Login onLogin={()=>setLogged(true)} />;
+}
 
-    ReactDOM.createRoot(document.getElementById('root')).render(<App />);
-  </script>
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
 </body>
 </html>
