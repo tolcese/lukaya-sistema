@@ -203,7 +203,7 @@
       );
 
       return (
-        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+        <div className="modal-overlay">
           <div className="modal-box">
             <div className="modal-header">
               <span style={{ fontSize: 16, fontWeight: 700 }}>{row ? '✏️ Editar Operación' : '➕ Nueva Operación'}</span>
@@ -322,7 +322,7 @@
       const grid = { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(160px, 1fr))', gap: '4px 20px' };
 
       return (
-        <div className="modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
+        <div className="modal-overlay">
           <div className="modal-box">
             <div className="modal-header">
               <div>
