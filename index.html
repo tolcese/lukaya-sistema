@@ -151,20 +151,7 @@
 
     const Cb = ({val}) => <span className={`cb ${val?'yes':''}`}>{val?'✓':''}</span>;
 
-    // ── DATE INPUT con formato DD/MM/AAAA ──
-    function DateInput({value, onChange}) {
-      const [raw, setRaw] = React.useState(toDisp(value));
-      React.useEffect(()=>{ setRaw(toDisp(value)); },[value]);
-      return (
-        <input
-          type="text"
-          placeholder="DD/MM/AAAA"
-          value={raw}
-          onChange={e => { setRaw(e.target.value); onChange(e.target.value); }}
-          maxLength={10}
-        />
-      );
-    }
+
 
     // ── LOGIN ──
     function Login({onLogin}) {
@@ -231,9 +218,13 @@
                 <option value="">-- Seleccionar --</option>
                 {options.map(o=><option key={o} value={o}>{o}</option>)}
               </select>
-            : type==='date'
-              ? <DateInput value={form[name]} onChange={v=>set(name,v)} />
-              : <input type={type} value={form[name]??''} onChange={e=>set(name,e.target.value)} />
+            : <input
+                type="text"
+                placeholder={type==='date'?'DD/MM/AAAA':undefined}
+                value={form[name]??''}
+                onChange={e=>set(name,e.target.value)}
+                maxLength={type==='date'?10:undefined}
+              />
           }
         </div>
       );
@@ -328,7 +319,7 @@
                     <label>Sí, pagado</label>
                   </div>
                 </div>
-                {form.pagado && <div className="form-group"><label>Fecha Pagado</label><DateInput value={form.fecha_pagado} onChange={v=>set('fecha_pagado',v)} /></div>}
+                {form.pagado && <div className="form-group"><label>Fecha Pagado</label><input type="text" placeholder="DD/MM/AAAA" value={form.fecha_pagado??''} onChange={e=>set('fecha_pagado',e.target.value)} maxLength={10} /></div>}
                 <div className="form-group">
                   <label>Pago Com. Gestora</label>
                   <div className={`check-item ${form.pago_com_gest?'checked':''}`} onClick={()=>set('pago_com_gest',!form.pago_com_gest)} style={{marginTop:4}}>
@@ -336,7 +327,7 @@
                     <label>Sí, pagado</label>
                   </div>
                 </div>
-                {form.pago_com_gest && <div className="form-group"><label>Fecha Pago Com. Gest.</label><DateInput value={form.fecha_pago_com_gest} onChange={v=>set('fecha_pago_com_gest',v)} /></div>}
+                {form.pago_com_gest && <div className="form-group"><label>Fecha Pago Com. Gest.</label><input type="text" placeholder="DD/MM/AAAA" value={form.fecha_pago_com_gest??''} onChange={e=>set('fecha_pago_com_gest',e.target.value)} maxLength={10} /></div>}
               </div>
 
               <div className="section-title">Observaciones</div>
